@@ -1,1 +1,11 @@
-[]
+[
+  {
+    "id": 1779879239865,
+    "name": "khoa",
+    "email": "abc@gmail.com",
+    "address": "hanoi",
+    "passwordHash": "$2a$10$S0EeQXwxhA5J9MphG/GtlefPeaiMgpJa5k4aiv9ol/Zw84eezX65K",
+    "role": "customer",
+    "createdAt": "2026-05-27T10:53:59.941Z"
+  }
+]
