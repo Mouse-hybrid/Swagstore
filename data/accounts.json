@@ -7,5 +7,14 @@
     "passwordHash": "$2a$10$S0EeQXwxhA5J9MphG/GtlefPeaiMgpJa5k4aiv9ol/Zw84eezX65K",
     "role": "customer",
     "createdAt": "2026-05-27T10:53:59.941Z"
+  },
+  {
+    "id": 1779879239866,
+    "name": "Staff",
+    "email": "staff@gmail.com",
+    "address": "hanoi",
+    "passwordHash": "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
+    "role": "staff",
+    "createdAt": "2026-06-03T07:00:00.000Z"
   }
 ]

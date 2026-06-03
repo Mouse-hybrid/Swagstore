@@ -120,16 +120,31 @@ exports.placeOrder = (req, res) => {
   const cart = getCart(req);
   if (cart.count === 0) return res.redirect('/cart');
   const user = req.session.user || {};
+
+  // Mặc định đơn hàng thuộc về chính user đang đăng nhập
+  let targetUserId = user.id;
+  let targetEmail = user.email;
+
+  // Nghiệp vụ nâng cao: Nếu staff đặt hàng hộ qua Email khách hàng nhập vào form
+  if (user.role === 'staff' && req.body.customerEmail) {
+    const customer = Account.findByEmail(req.body.customerEmail);
+    if (customer) {
+      targetUserId = customer.id;
+      targetEmail = customer.email;
+    }
+  }
+
   const order = {
     id:       'ORD-' + Date.now(),
-    userId:   user.id,
-    email:    user.email,
+    userId:   targetUserId,
+    email:    targetEmail,
     items:    cart.lines,
     total:    cart.total,
     name:     req.body.name,
     address:  req.body.address,
     placedAt: new Date().toLocaleString('vi-VN'),
   };
+  
   Order.add(order);
   cart.clear();
   saveCart(req, cart);

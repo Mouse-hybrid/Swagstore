@@ -100,3 +100,11 @@ exports.showProfile = (req, res) => {
     cartCount: cart.count,
   });
 };
+
+// Middleware xác thực quyền Staff
+exports.requireStaff = (req, res, next) => {
+  if (req.session.user && req.session.user.role === 'staff') {
+    return next();
+  }
+  res.status(403).send('Forbidden: Access denied. Staff only.');
+};
