@@ -21,7 +21,7 @@ afterAll(() => {
 beforeEach(() => fs.writeFileSync(dataFile, '[]'));
 afterEach (() => fs.writeFileSync(dataFile, '[]'));
 
-// ── getAll / findByEmail / findById ──────────────────────────
+// ── getAll / findByEmail / findById\
 describe('Account.getAll()', () => {
   test('returns empty array initially', () => {
     expect(Account.getAll()).toEqual([]);

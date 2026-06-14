@@ -1,7 +1,6 @@
 # ─────────────────────────────────────────────────────────────
-# SwagStore – CI/CD Pipeline
+# SwagStore – CI/CD Pipeline (Đã tích hợp Cypress Automation Lab 5)
 # Triggers: push / PR to any branch
-#           additional "deploy" job runs only on main
 # ─────────────────────────────────────────────────────────────
 name: CI / CD
 
@@ -11,13 +10,13 @@ on:
   pull_request:
     branches: ['**']
 
-# Cancel in-progress runs when a new commit is pushed
+# Tự động hủy các luồng đang chạy dở nếu có commit mới được push lên để tiết kiệm tài nguyên
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  # ── 1. LINT ────────────────────────────────────────────────
+  # ── 1. LINT (Kiểm tra cú pháp Node.js) ─────────────────────
   lint:
     name: Lint (Node syntax check)
     runs-on: ubuntu-latest
@@ -40,7 +39,7 @@ jobs:
             ! -path "./.github/*" \
             -exec node --check {} \;
 
-  # ── 2. UNIT + INTEGRATION TESTS ───────────────────────────
+  # ── 2. UNIT + INTEGRATION TESTS (Test hệ thống Swagstore) ──
   test:
     name: Test (Node ${{ matrix.node }})
     needs: lint
@@ -48,7 +47,7 @@ jobs:
 
     strategy:
       matrix:
-        node: ['18', '20', '22']   # test on LTS + current
+        node: ['18', '20', '22']
 
     steps:
       - uses: actions/checkout@v4
@@ -66,17 +65,45 @@ jobs:
         run: npm run test:coverage
 
       - name: Upload coverage report
-        if: matrix.node == '20'        # upload only once
+        if: matrix.node == '20'
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: coverage/
           retention-days: 7
 
-  # ── 3. BUILD VERIFICATION ─────────────────────────────────
+  # ── 3. LAB 5: CYPRESS E2E TESTS (Tích hợp kiểm thử tự động) ──
+  e2e-cypress:
+    name: Cypress E2E Automation (Lab 5)
+    needs: lint # Chạy sau khi bước Lint thành công
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Cypress E2E Tests
+        uses: cypress-io/github-action@v6
+        with:
+          # Chỉ định chính xác đường dẫn đến thư mục chứa mã nguồn Cypress Lab 5 của bạn
+          working-directory: lab5-automation 
+          browser: chrome
+          headless: true
+
+      # Nếu kịch bản Cypress có bước nào bị lỗi, tự động tải ảnh và video lỗi lên GitHub
+      - name: Upload Cypress Artifacts on Failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-error-logs
+          path: |
+            lab5-automation/cypress/screenshots
+            lab5-automation/cypress/videos
+
+  # ── 4. BUILD VERIFICATION (Xác minh đóng gói) ──────────────
   build:
     name: Build verification
-    needs: test
+    # ĐIỀU KIỆN MỚI: Chỉ build khi cả Unit Test hệ thống và Cypress Automation đều PASSED
+    needs: [test, e2e-cypress] 
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -118,7 +145,7 @@ jobs:
           path: dist/swagstore.zip
           retention-days: 14
 
-  # ── 4. DEPLOY (main branch only) ──────────────────────────
+  # ── 5. DEPLOY (Triển khai ứng dụng lên Production) ─────────
   deploy:
     name: Deploy to production
     needs: build
@@ -127,7 +154,7 @@ jobs:
 
     environment:
       name: production
-      url: https://swagstore.example.com   # ← thay bằng URL thật
+      url: https://swagstore.example.com
 
     steps:
       - uses: actions/checkout@v4
@@ -146,40 +173,6 @@ jobs:
         with:
           name: swagstore-build-${{ github.sha }}
           path: dist/
-
-      # ── Option A: Deploy to Railway / Render / Fly.io ─────
-      # Bỏ comment block phù hợp với nền tảng của bạn.
-
-      # Railway
-      # - name: Deploy to Railway
-      #   env:
-      #     RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-      #   run: npx @railway/cli up --service swagstore
-
-      # Render (via deploy hook)
-      # - name: Trigger Render deploy
-      #   run: |
-      #     curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
-
-      # Fly.io
-      # - name: Deploy to Fly.io
-      #   uses: superfly/flyctl-actions/setup-flyctl@master
-      # - run: flyctl deploy --remote-only
-      #   env:
-      #     FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-
-      # ── Option B: SSH deploy to VPS ───────────────────────
-      # - name: Deploy via SSH
-      #   uses: appleboy/ssh-action@v1
-      #   with:
-      #     host:     ${{ secrets.SSH_HOST }}
-      #     username: ${{ secrets.SSH_USER }}
-      #     key:      ${{ secrets.SSH_PRIVATE_KEY }}
-      #     script: |
-      #       cd /var/www/swagstore
-      #       git pull origin main
-      #       npm ci --omit=dev
-      #       pm2 restart swagstore
 
       - name: ✅ Deploy step placeholder
         run: |

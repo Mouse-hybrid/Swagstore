@@ -34,7 +34,7 @@ afterEach(() => {
   fs.writeFileSync(ordersFile, '[]');
 });
 
-// ── Helper: login agent ───────────────────────────────────────
+// ── Helper: login agent
 async function loginAgent(email, password) {
   const agent = request.agent(app);
   Account.add({ name: 'Test', email, password, address: '1 St' });
@@ -42,7 +42,7 @@ async function loginAgent(email, password) {
   return agent;
 }
 
-// ── GET / ─────────────────────────────────────────────────────
+// ── GET /
 describe('GET /', () => {
   test('returns 200 and renders shop page', async () => {
     const res = await request(app).get('/');
@@ -61,7 +61,7 @@ describe('GET /', () => {
   });
 });
 
-// ── Cart ──────────────────────────────────────────────────────
+// ── Cart 
 describe('Cart routes', () => {
   test('GET /cart returns 200', async () => {
     const res = await request(app).get('/cart');
@@ -104,7 +104,7 @@ describe('Cart routes', () => {
   });
 });
 
-// ── Auth: Register ────────────────────────────────────────────
+// ── Auth: Register
 describe('Auth: Register', () => {
   test('GET /register returns 200', async () => {
     const res = await request(app).get('/register');
@@ -137,7 +137,7 @@ describe('Auth: Register', () => {
   });
 });
 
-// ── Auth: Login / Logout ──────────────────────────────────────
+// ── Auth: Login / Logout 
 describe('Auth: Login', () => {
   test('GET /login returns 200', async () => {
     expect((await request(app).get('/login')).status).toBe(200);
@@ -171,7 +171,7 @@ describe('Auth: Login', () => {
   });
 });
 
-// ── Protected routes ──────────────────────────────────────────
+// ── Protected routes
 describe('Protected routes (require login)', () => {
   test('GET /checkout redirects to /login when not logged in', async () => {
     const res = await request(app).get('/checkout');
@@ -192,7 +192,7 @@ describe('Protected routes (require login)', () => {
   });
 });
 
-// ── Checkout + Order flow ─────────────────────────────────────
+// ── Checkout + Order flow 
 describe('Checkout & Order flow', () => {
   test('GET /checkout redirects to /cart when logged in but cart empty', async () => {
     const agent = await loginAgent('buyer@x.com', 'pass');
