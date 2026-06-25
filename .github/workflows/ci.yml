@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────
-# SwagStore – CI/CD Pipeline (Tích hợp Cypress & Playwright Lab 5)
+# SwagStore – CI/CD Pipeline (Chỉ giữ lại luồng Deploy SwagStore chính)
 # Triggers: push / PR to any branch
 # ─────────────────────────────────────────────────────────────
 name: CI / CD
@@ -72,74 +72,64 @@ jobs:
           path: coverage/
           retention-days: 7
 
-  # ── 3. LAB 5: CYPRESS E2E TESTS (Tích hợp kiểm thử tự động) ──
-  e2e-cypress:
-    name: Cypress E2E Automation (Lab 5)
-    needs: lint # Chạy sau khi bước Lint thành công
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+  # ── 3. LAB 5: CYPRESS E2E TESTS (Tạm ẩn luồng test Lab 5) ──
+  # e2e-cypress:
+  #   name: Cypress E2E Automation (Lab 5)
+  #   needs: lint
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
+  #     - name: Run Cypress E2E Tests
+  #       uses: cypress-io/github-action@v6
+  #       with:
+  #         working-directory: lab5-automation 
+  #         browser: chrome
+  #         headless: true
+  #     - name: Upload Cypress Artifacts on Failure
+  #       uses: actions/upload-artifact@v4
+  #       if: failure()
+  #       with:
+  #         name: cypress-error-logs
+  #         path: |
+  #           lab5-automation/cypress/screenshots
+  #           lab5-automation/cypress/videos
 
-      - name: Run Cypress E2E Tests
-        uses: cypress-io/github-action@v6
-        with:
-          working-directory: lab5-automation 
-          browser: chrome
-          headless: true
-
-      # Nếu kịch bản Cypress có bước nào bị lỗi, tự động tải ảnh và video lỗi lên GitHub
-      - name: Upload Cypress Artifacts on Failure
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: cypress-error-logs
-          path: |
-            lab5-automation/cypress/screenshots
-            lab5-automation/cypress/videos
-
-  # ── 3b. LAB 5: PLAYWRIGHT E2E TESTS (Bổ sung chạy song song) ──
-  e2e-playwright:
-    name: Playwright E2E Automation (Lab 5)
-    needs: lint # Chạy song song sau khi bước Lint thành công
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-        working-directory: lab5-automation
-
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
-        working-directory: lab5-automation
-
-      - name: Run Playwright tests
-        run: npx playwright test
-        working-directory: lab5-automation
-
-      # Nếu Playwright lỗi, xuất report lên Artifacts làm minh chứng
-      - name: Upload Playwright Report on Failure
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: playwright-report
-          path: lab5-automation/playwright-report/
-          retention-days: 7
+  # ── 3b. LAB 5: PLAYWRIGHT E2E TESTS (Tạm ẩn luồng test Lab 5) ──
+  # e2e-playwright:
+  #   name: Playwright E2E Automation (Lab 5)
+  #   needs: lint
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
+  #     - name: Setup Node.js 20
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: '20'
+  #         cache: 'npm'
+  #     - name: Install dependencies
+  #       run: npm ci
+  #       working-directory: lab5-automation
+  #     - name: Install Playwright Browsers
+  #       run: npx playwright install --with-deps
+  #       working-directory: lab5-automation
+  #     - name: Run Playwright tests
+  #       run: npx playwright test
+  #       working-directory: lab5-automation
+  #     - name: Upload Playwright Report on Failure
+  #       uses: actions/upload-artifact@v4
+  #       if: failure()
+  #       with:
+  #         name: playwright-report
+  #         path: lab5-automation/playwright-report/
+  #         retention-days: 7
 
   # ── 4. BUILD VERIFICATION (Xác minh đóng gói) ──────────────
   build:
     name: Build verification
-    # GIỮ NGUYÊN VÀ CẬP NHẬT ĐIỀU KIỆN: Chỉ chạy khi Unit Test, Cypress VÀ Playwright đều kết thúc
-    needs: [test, e2e-cypress, e2e-playwright] 
-    # Thêm cấu hình if để bước build vẫn chạy ngay cả khi Cypress/Playwright fail (để bạn giữ đúng log lỗi khớp testcase)
+    # ĐÃ SỬA: Chỉ cần đợi duy nhất luồng test hệ thống chính thành công, loại bỏ e2e-cypress và e2e-playwright
+    needs: [test] 
     if: always() && !cancelled() && needs.test.result == 'success'
     runs-on: ubuntu-latest
     steps:
@@ -187,7 +177,6 @@ jobs:
     name: Deploy to production
     needs: build
     runs-on: ubuntu-latest
-    # Chỉ deploy khi bước build thành công và nằm ở nhánh main
     if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.build.result == 'success'
 
     environment:
