@@ -33,3 +33,16 @@ Thumbs.db
 #  Logs 
 logs/
 *.log
+
+# ==========================================
+# 🧪 Test Automation (lab5-automation)
+# ==========================================
+# Chặn toàn bộ thư mục lab5 bao gồm cả Playwright và Cypress
+lab5-automation/
+
+# Dự phòng các file sinh ra khi chạy test local
+playwright-report/
+test-results/
+cypress/videos/
+cypress/screenshots/
+.cypress-cache/
